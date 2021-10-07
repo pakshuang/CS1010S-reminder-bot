@@ -27,7 +27,7 @@ deadlines['start'] = pd.to_datetime(deadlines['start'],
 ### Establish the current date and desired lead time for reminders###
 
 today = datetime.now(timezone('Asia/Singapore')).date()
-##today = pd.Timestamp('2021-10-10').date()
+##today = pd.Timestamp('2021-10-02').date()
 lead_time = 3
 
 
@@ -112,10 +112,7 @@ def generate_msg(row):
 
 def compile_reminder(today_events, future_events):
     # title
-    if len(future_events)+len(today_events) == 1:
-        reminder = f'<b>:alarm_clock:  Reminder for {today.strftime("%A, %d %b")}  :alarm_clock:</b>'
-    elif len(future_events)+len(today_events) > 1:
-        reminder = f'<u>Reminders for {today.strftime("%A, %d %b")}:</u>'
+    reminder = f'<u>Reminder{"s" if len(future_events)+len(today_events) > 1 else ""} for {today.strftime("%A, %d %b")}:</u>'
 
     # today
     if len(today_events)>0:
