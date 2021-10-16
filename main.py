@@ -115,19 +115,21 @@ def compile_reminder(today_events, future_events):
     reminder = f'<u>Reminder{"s" if len(future_events)+len(today_events) > 1 else ""} for {today.strftime("%A, %d %b")}:</u>'
 
     # today
-    if len(today_events)>0:
-        reminder += f'\n\n<b>:rotating_light:  Today  :rotating_light:</b>'
+    reminder += f'\n\n<b>:rotating_light:  Today  :rotating_light:</b>'
+    if len(today_events)==0:
+        reminder += f'\n\n<i>:grin:  There are no deadlines today</i>'
     for i, row in today_events.iterrows():
         reminder += '\n\n' + generate_msg(row)
 
     # next lead_time days
-    if len(future_events)>0:
-        reminder += f'\n\n<b>:{num2words(lead_time)}:  Next {lead_time} Days  :{num2words(lead_time)}:</b>'
+    reminder += f'\n\n<b>:{num2words(lead_time-1)}:  Next {lead_time-1} Days  :{num2words(lead_time-1)}:</b>'
+    if len(future_events)==0:
+        reminder += f'\n\n<i>:grin:  There are no upcoming deadlines in the following {lead_time-1} days</i>'
     for i, row in future_events.iterrows():
         reminder += '\n\n' + generate_msg(row)
     # coursemology
-    reminder += '\n\n:rocket:  <a href="https://coursemology.org/courses/2104/assessments?category=2568&tab=4374">Coursemology</a>  :rocket:'
-    #emojize
+    # reminder += '\n\n:rocket:  <a href="https://coursemology.org/courses/2104/assessments?category=2568&tab=4374">Coursemology</a>  :rocket:'
+    # emojize
     reminder = emojize(reminder, use_aliases=True)
     return reminder
 
@@ -147,9 +149,17 @@ today_events, future_events = get_events(deadlines, lead_time)
 
 if len(today_events)>0 or len(future_events)>0:
     msg = compile_reminder(today_events, future_events)
+    coursemology_button = InlineKeyboardButton(text = emojize(':rocket:  Coursemology', use_aliases=True),
+                                               url = "https://coursemology.org/courses/2104")
+    channel_button = InlineKeyboardButton(text = emojize(':bell:  Join Channel', use_aliases=True),
+                                          url = "https://t.me/CS1010S_reminders")
+    keyboard = [[coursemology_button, channel_button]]
+    keyboard_markup = InlineKeyboardMarkup(keyboard)
     print(msg)
     bot.send_message(chat_id = Chat_ID,
                      text = msg,
-                     parse_mode = 'html')
+                     parse_mode = 'html',
+                     disable_web_page_preview = True,
+                     reply_markup = keyboard_markup)
 
 updater.stop()
