@@ -7,7 +7,7 @@ web scraping\Tutorial.html
 web scraping\scraping_config.py
 web scraping\Missions.html
 web scraping\deadlines.csv
-web scraping\Tutorial_files
-web scraping\Trainings_files
-web scraping\Missions_files
+web scraping\Tutorial_files\
+web scraping\Trainings_files\
+web scraping\Missions_files\
 web scraping\__pycache__
