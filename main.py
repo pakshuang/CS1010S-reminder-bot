@@ -8,9 +8,9 @@ from num2words import num2words
 #api file
 import config
 
-
-
-### Load data ###
+###############
+#  Load data  #
+###############
 
 deadlines = pd.read_csv("deadlines.csv")
 deadlines['deadline'] = pd.to_datetime(deadlines['deadline'],
@@ -22,17 +22,39 @@ deadlines['attempt by'] = pd.to_datetime(deadlines['attempt by'],
 deadlines['start'] = pd.to_datetime(deadlines['start'],
                                          format = '%Y-%m-%d').dt.date
 
+#################
+#  Load config  #
+#################
 
+test_mode = True # custom date and sends message to personal chat instead
+if test_mode:
+    today = pd.Timestamp('2021-11-12').date()
+    Chat_ID = "337648992"
+else:
+    today = datetime.now(timezone('Asia/Singapore')).date()
+    Chat_ID = config.chat_id
+lead_time = config.lead_time
+sem_start_date = date(*config.week_1)
+target_weeks = config.target_weeks
+emojis = config.emojis
+API_Key = config.api_key
 
-### Establish the current date and desired lead time for reminders###
+###########################
+#  Calculate week number  #
+###########################
 
-today = datetime.now(timezone('Asia/Singapore')).date()
-##today = pd.Timestamp('2021-10-02').date()
-lead_time = 3
+week_format = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6',
+               'Recess Week',
+               'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13',
+               'Reading Week', 'Examination Weeks', 'Examination Weeks', 'Vacation']
+week_delta = max(-1,
+                 min(17,
+                     today.isocalendar()[1] - sem_start_date.isocalendar()[1]))
+nus_week = week_format[week_delta]
 
-
-
-### Define functions ###
+######################
+#  Define functions  #
+######################
 
 def get_events(df, period):
     dates = pd.date_range(today,
@@ -59,16 +81,6 @@ def get_events(df, period):
 
 
 def generate_msg(row):
-    emojis = {'mission': ':airplane:',
-              'side quest': ':small_airplane:',
-              'contest': ':magic_wand:',
-              'exam': ':people_hugging:',
-              'lecture training': ':video_game:',
-              'tutorial training': ':joystick:',
-              'exam practice': ':book:',
-              'forum': ':speech_balloon:',
-              'lecture reflection': ':thought_balloon:'}
-    
     msg = f"<b>{emojis[row['type']]}  {row['name']}</b>"
     
     # deadline
@@ -112,49 +124,67 @@ def generate_msg(row):
 
 def compile_reminder(today_events, future_events):
     # title
-    reminder = f'<u>Reminder{"s" if len(future_events)+len(today_events) > 1 else ""} for {today.strftime("%A, %d %b")}:</u>'
+    reminder = f'<u><b>Reminder{"s" if len(future_events)+len(today_events) > 1 else ""} for {today.strftime("%A, %d %b")} ({nus_week})</b></u>'
 
     # today
     reminder += f'\n\n<b>:rotating_light:  Today  :rotating_light:</b>'
-    if len(today_events)==0:
+    if len(today_events) == 0:
         reminder += f'\n\n<i>:grin:  There are no deadlines today</i>'
     for i, row in today_events.iterrows():
         reminder += '\n\n' + generate_msg(row)
 
     # next lead_time days
-    reminder += f'\n\n<b>:{num2words(lead_time-1)}:  Next {lead_time-1} Days  :{num2words(lead_time-1)}:</b>'
-    if len(future_events)==0:
+    reminder += f'\n\n<b>:{num2words(lead_time - 1)}:  Next {lead_time - 1} Days  :{num2words(lead_time - 1)}:</b>'
+    if len(future_events) == 0:
         reminder += f'\n\n<i>:grin:  There are no upcoming deadlines in the following {lead_time-1} days</i>'
     for i, row in future_events.iterrows():
         reminder += '\n\n' + generate_msg(row)
-    # coursemology
-    # reminder += '\n\n:rocket:  <a href="https://coursemology.org/courses/2104/assessments?category=2568&tab=4374">Coursemology</a>  :rocket:'
-    # emojize
-    reminder = emojize(reminder, use_aliases=True)
     return reminder
 
+def progression(week_delta):
+    msg = '<b>\n\n:chart_increasing:  Progress Tracker  :chart_increasing:</b>'
+    msg += '\n<i>Levels to reach this week to be on track for level 50 by your target week</i>'
+    for target_week in target_weeks:
+        if target_week > week_delta:
+            target_level = round(50 * ((week_delta + 1) / (target_week + 1)))
+            msg += f'\nLevel {target_level} this week :right_arrow: Level 50 in {week_format[target_week]}'
+    return msg
 
+####################
+#  Telegram stuff  #
+####################
 
-### Telegram stuff and sending reminders ###
-
-API_Key = config.api_key
-Chat_ID = "@CS1010S_Reminders"
-#Chat_ID = "337648992"
-
+# initialise bot
 bot = Bot(API_Key)
 updater = Updater(API_Key, use_context = True)
 updater.start_polling()
 
+# get relevant events
 today_events, future_events = get_events(deadlines, lead_time)
 
+# compile and send reminder if there are any relevant events
 if len(today_events)>0 or len(future_events)>0:
+    # main reminders
     msg = compile_reminder(today_events, future_events)
+
+    # level progression tracker
+    if 0 < week_delta < max(target_weeks):
+        msg += progression(week_delta)
+
+    # exam countdown
+    #exams = deadlines[deadlines['type'] == 'exam' & (deadlines['deadline'] - today)/np.timedelta64(1,'D') <= 21]
+    #print(exams)
+
+    # buttons
     coursemology_button = InlineKeyboardButton(text = emojize(':rocket:  Coursemology', use_aliases=True),
                                                url = "https://coursemology.org/courses/2104")
     channel_button = InlineKeyboardButton(text = emojize(':bell:  Join Channel', use_aliases=True),
                                           url = "https://t.me/CS1010S_reminders")
     keyboard = [[coursemology_button, channel_button]]
     keyboard_markup = InlineKeyboardMarkup(keyboard)
+
+    # broadcast message
+    msg = emojize(msg, use_aliases=True)
     print(msg)
     bot.send_message(chat_id = Chat_ID,
                      text = msg,
