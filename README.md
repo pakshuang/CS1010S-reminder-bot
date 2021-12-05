@@ -32,7 +32,7 @@ Telegram bot that reminds students about deadlines, exams, and more for the NUS 
 ![image](https://user-images.githubusercontent.com/81917538/144758516-6cee1b1a-2e14-4834-b9e1-56d4df8ae656.png)
 
 ## Sample of the bot at work:
-<img src="https://user-images.githubusercontent.com/81917538/137580522-f1e34e43-36ec-4f3d-bbe6-634a963d8d14.png" alt="Sample" width="400"/>
+<img src="https://user-images.githubusercontent.com/81917538/144759067-78c65e57-6256-4703-bc52-17d6747afd1b.png" width="400"/>
 
 ## Impact:
 <img src="https://user-images.githubusercontent.com/81917538/143457371-5f6621b2-9bfa-43d3-a44c-edd745e3b0bb.png" alt="Sample" width="400"/>
