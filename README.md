@@ -7,7 +7,8 @@ Telegram bot that reminds students about deadlines, exams, and more for the NUS 
 ## Project Status:
 - v3.0 has been released.
 - I intend to deploy this bot for all subsequent semesters of CS1010S for the foreseeable future and possibly port the bot for other modules in the future
-- v3.0 is meant to be the final major release, but any plans will be documented in [Issues](https://github.com/pakshuang/CS1010S-reminder-bot/issues)
+- The bot was hosted on PythonAnywhere.com for AY21/22 Sem 1, which works pretty well. However, I am considering hosting the bot on AWS or Heroku or some other platform for subsequent semesters, just to get experience on those PaaS.
+- v3.0 is meant to be the final major release, but any new plans will be documented in [Issues](https://github.com/pakshuang/CS1010S-reminder-bot/issues)
 
 ## Project Summary:
 - This Telegram bot sends students reminders through a public Telegram channel which also pushes reminders to a supergroup.
