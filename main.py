@@ -1,5 +1,7 @@
-from os.path import abspath, dirname, join
+from os.path import abspath, realpath, dirname, join
+import sys
 import datetime
+
 import pytz
 import pandas as pd
 import telegram
@@ -10,7 +12,10 @@ from num2words import num2words
 #  Load config  #
 #################
 
+private_path = realpath(abspath(join(dirname(__file__), '..', 'private')))
+sys.path.insert(1, private_path)
 import config
+
 if config.test_mode:
     today = pd.Timestamp('2021-09-15').date()
     #today = datetime.datetime.now(pytz.timezone('Asia/Singapore')).date()
@@ -23,7 +28,7 @@ sem_start_date = datetime.date(*config.week_1)
 #  Load data  #
 ###############
 
-deadlines_path = abspath(join(dirname(__file__), 'web scraping/deadlines.csv'))
+deadlines_path = abspath(join(private_path, 'deadlines.csv'))
 deadlines = pd.read_csv(deadlines_path,
                         dtype={'Experience Points': 'Int64',
                                'Bonus Experience Points': 'Int64'})

@@ -1,7 +1,12 @@
-from os.path import abspath, dirname, join
+from os.path import abspath, realpath, dirname, join
+import sys
 import datetime
+
 import pandas as pd
 from bs4 import BeautifulSoup
+
+private_path = realpath(abspath(join(dirname(__file__), '..', 'private')))
+sys.path.insert(1, private_path)
 import scraping_config
 
 ##############
@@ -9,7 +14,7 @@ import scraping_config
 ##############
 
 # parsing HTML file
-missions_path = abspath(join(dirname(__file__), 'Missions.html'))
+missions_path = abspath(join(private_path, 'Missions.html'))
 with open(missions_path, 'r') as missions_file:
     missions_html = missions_file.read()
     missions = pd.read_html(missions_html,
@@ -54,7 +59,7 @@ missions['Type'] = missions['Title'].apply(mission_cat)
 ###############
 
 # parsing HTML file
-tutorials_path = abspath(join(dirname(__file__), 'Tutorial.html'))
+tutorials_path = abspath(join(private_path, 'Tutorial.html'))
 with open(tutorials_path, 'r') as tutorials_file:
     tutorials_html = tutorials_file.read()
     tutorials = pd.read_html(tutorials_html,
@@ -99,7 +104,7 @@ tutorials = pd.concat([tutorials, tut_attempts], axis=1)
 ###############
 
 # parsing HTML file
-trainings_path = abspath(join(dirname(__file__), 'Trainings.html'))
+trainings_path = abspath(join(private_path, 'Trainings.html'))
 with open(trainings_path, 'r') as trainings_file:
     trainings_html = trainings_file.read()
     trainings = pd.read_html(trainings_html,
@@ -248,5 +253,5 @@ deadlines['Type'] = deadlines['Type'].astype('category')
 deadlines['Type'].cat.set_categories(sorter, inplace=True)
 deadlines = deadlines.sort_values(['Type', 'Title']).reset_index(drop=True)
 print(deadlines)
-deadlines_path = abspath(join(dirname(__file__), 'deadlines.csv'))
+deadlines_path = abspath(join(private_path, 'deadlines.csv'))
 #deadlines.to_csv(deadlines_path, index=False) # uncomment to write
