@@ -1,8 +1,8 @@
-from bs4 import BeautifulSoup
-import pandas as pd
-import datetime
 from os.path import abspath, dirname, join
-from scraping_config import *
+import datetime
+import pandas as pd
+from bs4 import BeautifulSoup
+import scraping_config
 
 ##############
 #  Missions  #
@@ -85,11 +85,11 @@ tutorials = tutorials[['Title', 'Experience Points', 'Bonus Experience Points',
 tutorials['Type'] = 'Tutorial'
 
 # tutorial attempt cutoff for participation EXP
-first_monday = datetime.date(*week_1)
+first_monday = datetime.date(*scraping_config.week_1)
 tut_attempts = pd.date_range(start=first_monday,
-                             periods=len(tutorials) + len(no_tuts),
-                             freq=tut_cutoff_day)
-tut_attempts = tut_attempts.to_frame(index=False, name='Attempt By').drop(no_tuts).reset_index(drop=True)
+                             periods=len(tutorials) + len(scraping_config.no_tuts),
+                             freq=scraping_config.tut_cutoff_day)
+tut_attempts = tut_attempts.to_frame(index=False, name='Attempt By').drop(scraping_config.no_tuts).reset_index(drop=True)
 #print(tut_attempts)
 tutorials = pd.concat([tutorials, tut_attempts], axis=1)
 #print(tutorials)
@@ -148,7 +148,7 @@ deadlines[time_cols] = deadlines[time_cols].apply(pd.to_datetime,
                                                                                       format='%d %b %H:%M',
                                                                                       errors='ignore')
 for col in time_cols:
-    deadlines[col] = deadlines[col].apply(lambda ts: ts.replace(year=year))
+    deadlines[col] = deadlines[col].apply(lambda ts: ts.replace(year=scraping_config.year))
     deadlines[col] = deadlines[col].apply(lambda ts: ts.date())
 #print(deadlines)
 
@@ -156,7 +156,7 @@ for col in time_cols:
 #  Exams  #
 ###########
 
-exams = pd.DataFrame.from_dict(exam_dates)
+exams = pd.DataFrame.from_dict(scraping_config.exam_dates)
 exams['Type'] = 'Exam'
 #print(exams)
 
@@ -166,19 +166,19 @@ exams['Type'] = 'Exam'
 
 # generate reflection titles
 reflection_titles = []
-for i in range(1, lecture_count + 1):
+for i in range(1, scraping_config.lecture_count + 1):
     reflection_titles.append(f'Reflections: Lecture {i}')
 
 # generate reflection dates
 reflection_dates = []
 lectures = pd.date_range(start=first_monday,
-                         periods=lecture_count + len(no_lecture_weeks),
-                         freq=lecture_day)
+                         periods=scraping_config.lecture_count + len(scraping_config.no_lecture_weeks),
+                         freq=scraping_config.lecture_day)
 lectures = lectures.to_frame(index=False, name='Start At').drop(
-    no_lecture_weeks).reset_index(drop=True)
+    scraping_config.no_lecture_weeks).reset_index(drop=True)
 lectures['Title'] = reflection_titles
 lectures['Type'] = 'Reflections'
-lectures['Link'] = reflections_link
+lectures['Link'] = scraping_config.reflections_link
 #print(lectures)
 
 ###########
@@ -197,12 +197,12 @@ for i in range(len(week_format)):
 # generate forum dates
 forum_dates = []
 forums = pd.date_range(start=first_monday, periods=15,
-                       freq=lecture_day)
+                       freq=scraping_config.lecture_day)
 forums = forums.to_frame(index=False, name='Attempt By').drop(
     [0]).reset_index(drop=True)
 forums['Title'] = forum_titles
 forums['Type'] = 'Forum'
-forums['Link'] = forum_link
+forums['Link'] = scraping_config.forum_link
 # print(forums)
 
 #########
@@ -215,16 +215,16 @@ fet_titles = []
 for i in range(1, len(tutorials) + 1):
     fet_titles.append(f'FET Reminder: Tutorial {i}')
 
-for i in range(1,rec_count + 1):
+for i in range(1,scraping_config.rec_count + 1):
     fet_titles.append(f'FET Reminder: Recitation {i}')
 #print(fet_titles)
 
 fet = tut_attempts.rename(columns={'Attempt By': 'Start At'})
 
 recs = pd.date_range(start=first_monday,
-                             periods=rec_count + len(no_recs),
-                             freq=rec_fet_day)
-recs = recs.to_frame(index=False, name='Start At').drop(no_recs).reset_index(drop=True)
+                             periods=scraping_config.rec_count + len(scraping_config.no_recs),
+                             freq=scraping_config.rec_fet_day)
+recs = recs.to_frame(index=False, name='Start At').drop(scraping_config.no_recs).reset_index(drop=True)
 #print(recs)
 
 fet = pd.concat([fet,recs], ignore_index=True, )
