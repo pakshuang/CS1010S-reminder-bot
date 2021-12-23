@@ -253,5 +253,7 @@ deadlines['Type'] = deadlines['Type'].astype('category')
 deadlines['Type'].cat.set_categories(sorter, inplace=True)
 deadlines = deadlines.sort_values(['Type', 'Title']).reset_index(drop=True)
 print(deadlines)
-deadlines_path = abspath(join(private_path, 'deadlines.csv'))
-#deadlines.to_csv(deadlines_path, index=False) # uncomment to write
+
+if not scraping_config.test_mode:
+    deadlines_path = abspath(join(private_path, 'deadlines.csv'))
+    deadlines.to_csv(deadlines_path, index=False)

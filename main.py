@@ -1,4 +1,5 @@
 from os.path import abspath, realpath, dirname, join
+from os import environ
 import sys
 import datetime
 
@@ -15,14 +16,6 @@ from num2words import num2words
 private_path = realpath(abspath(join(dirname(__file__), '..', 'private')))
 sys.path.insert(1, private_path)
 import config
-
-if config.test_mode:
-    today = pd.Timestamp('2021-09-15').date()
-    #today = datetime.datetime.now(pytz.timezone('Asia/Singapore')).date()
-    chat_id = config.dev_id
-else:
-    today = datetime.datetime.now(pytz.timezone('Asia/Singapore')).date()
-sem_start_date = datetime.date(*config.week_1)
 
 ###############
 #  Load data  #
@@ -41,24 +34,9 @@ for col in time_cols:
     deadlines[col] = deadlines[col].apply(lambda ts: ts.date())
 # print(deadlines.info())
 
-###########################
-#  Calculate week number  #
-###########################
-
-week_format = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6',
-               'Recess Week',
-               'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13',
-               'Reading Week', 'Examination Weeks', 'Examination Weeks', 'Vacation']
-# ^because of recess week, it helps to not think of the actual week numbers, but the indices instead
-week_delta = max(-1, min(17,
-                         today.isocalendar()[1] - sem_start_date.isocalendar()[1]))
-# ^this is just error trapping, week_delta should never go beyond it's boundaries if deployed at the correct time
-nus_week = week_format[week_delta]
-
 ######################
 #  Define functions  #
 ######################
-
 
 def get_events(df, lead_time):
     dates = pd.date_range(today, periods=lead_time, closed='right').date
@@ -105,7 +83,7 @@ def generate_msg(row):
     # forum weekly
     if pd.notna(row['Attempt By']) and row['Type'] == 'Forum':
         ab = row['Attempt By'].strftime(date_format)
-        msg += f'\n<i>Contribute to the forums by <u>{ab}</u> to earn Participation EXP for {week_format[week_delta-1]}</i>'
+        msg += f'\n<i>Contribute to the forums by <u>{ab}</u> to earn Participation EXP for {config.week_format[week_delta-1]}</i>'
 
     # Bonus Cut Off
     if pd.notna(row['Bonus Cut Off']):
@@ -160,7 +138,7 @@ def progression(week_delta):
             target_level = round(50 * ((week_delta - config.target_intercepts[i] + 1) / (
                 config.target_weeks[i] - config.target_intercepts[i] + 1)))
             #msg += f'\nLevel {target_level}  :right_arrow:  {week_format[target_week]}'
-            msg += f'\nLevel {target_level} this week :right_arrow: Level 50 in {week_format[config.target_weeks[i]]}'
+            msg += f'\nLevel {target_level} this week :right_arrow: Level 50 in {config.week_format[config.target_weeks[i]]}'
             #msg += f'\nLvl {target_level} this week :right_arrow: Lvl 50 in {week_format[target_week]}'
     return msg
 
@@ -172,48 +150,72 @@ def countdown(row):
 #  Telegram stuff  #
 ####################
 
+def execute(event, context):
+    global today, week_delta, nus_week
 
-# initialise bot
-bot = telegram.Bot(config.api_key)
+    # parse test_mode
+    test_mode = bool(event['test'] != 'False')
+    if test_mode:
+        test_date = event['date']
+        today = pd.Timestamp(test_date).date()
+        chat_id = config.dev_id
+    else:
+        today = datetime.datetime.now(pytz.timezone('Asia/Singapore')).date()
+        chat_id = config.channel_id
 
-# get relevant events
-today_events, future_events = get_events(deadlines, config.lead_time)
+    # define week data
+    sem_start_date = datetime.date(*config.week_1)
+    week_delta = max(-1, min(17,
+                            today.isocalendar()[1] - sem_start_date.isocalendar()[1]))
+    # ^this is just error trapping, week_delta should never go beyond it's boundaries if deployed at the correct time
+    nus_week = config.week_format[week_delta]
+    
+    # initialise bot
+    bot = telegram.Bot(event['api_key'])
 
-# compile and send reminder if there are any relevant events
-if len(today_events) > 0 or len(future_events) > 0:
-    # main reminders
-    msg = compile_reminder(today_events, future_events)
+    # get relevant events
+    today_events, future_events = get_events(deadlines, config.lead_time)
 
-    # level progression tracker
-    if config.tracker_start <= week_delta < max(config.target_weeks):
-        msg += progression(week_delta)
+    # compile and send reminder if there are any relevant events
+    if len(today_events) > 0 or len(future_events) > 0:
+        # main reminders
+        msg = compile_reminder(today_events, future_events)
 
-    # exam countdown
-    exams = deadlines[(deadlines['Type'] == 'Exam') & ((deadlines['End At'] - today).dt.days <=
-                                                       config.countdown_threshold) & (1 <= (deadlines['End At'] - today).dt.days)]
-    exams = exams[['Title', 'End At']].sort_values(['End At'])
-    if len(exams) > 0:
-        exams['Countdown'] = (exams['End At'] - today).dt.days
-        msg += f'\n\n<b>:hourglass_not_done:  Upcoming Exams  :hourglass_not_done:</b>'
-        msg += exams.apply(countdown, axis=1).str.cat()
+        # level progression tracker
+        if config.tracker_start <= week_delta < max(config.target_weeks):
+            msg += progression(week_delta)
 
-    # buttons
-    coursemology_button = telegram.InlineKeyboardButton(text=emojize(':rocket:  Coursemology', use_aliases=True),
-                                                        url="https://coursemology.org/courses/2104")
-    channel_button = telegram.InlineKeyboardButton(text=emojize(':bell:  Join Channel', use_aliases=True),
-                                                   url="https://t.me/CS1010S_reminders")
-    buttons = [[coursemology_button, channel_button]]
-    keyboard = telegram.InlineKeyboardMarkup(buttons)
+        # exam countdown
+        exams = deadlines[(deadlines['Type'] == 'Exam') & ((deadlines['End At'] - today).dt.days <=
+                                                        config.countdown_threshold) & (1 <= (deadlines['End At'] - today).dt.days)]
+        exams = exams[['Title', 'End At']].sort_values(['End At'])
+        if len(exams) > 0:
+            exams['Countdown'] = (exams['End At'] - today).dt.days
+            msg += f'\n\n<b>:hourglass_not_done:  Upcoming Exams  :hourglass_not_done:</b>'
+            msg += exams.apply(countdown, axis=1).str.cat()
 
-    # broadcast message
-    msg = emojize(msg, use_aliases=True)
-    print(msg)
-    bot.send_message(chat_id=chat_id,
-                     text=msg,
-                     parse_mode='html',
-                     disable_web_page_preview=True,
-                     reply_markup=keyboard)
-else:
-    print(f'No reminders today ({today})')
-    bot.send_message(
-        text=f'No reminders today ({today})', chat_id=config.dev_id)
+        # buttons
+        coursemology_button = telegram.InlineKeyboardButton(text=emojize(':rocket:  Coursemology', use_aliases=True),
+                                                            url="https://coursemology.org/courses/2104")
+        channel_button = telegram.InlineKeyboardButton(text=emojize(':bell:  Join Channel', use_aliases=True),
+                                                    url="https://t.me/CS1010S_reminders")
+        buttons = [[coursemology_button, channel_button]]
+        keyboard = telegram.InlineKeyboardMarkup(buttons)
+
+        # broadcast message
+        msg = emojize(msg, use_aliases=True)
+        print(msg)
+        bot.send_message(chat_id=chat_id,
+                        text=msg,
+                        parse_mode='html',
+                        disable_web_page_preview=True,
+                        reply_markup=keyboard)
+    else:
+        msg = f'No reminders today ({today})'
+        print(msg)
+        bot.send_message(
+            text=msg, chat_id=config.dev_id)
+
+# for testing locally
+# event = {'test': 'True', 'date': '2021-09-15', 'api_key': config.api_key}
+# execute(event, None)
