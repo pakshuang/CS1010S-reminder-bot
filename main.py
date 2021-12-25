@@ -114,14 +114,14 @@ def compile_reminder(today_events, future_events):
     reminder = f'<b>Reminder{"s" if len(future_events)+len(today_events) > 1 else ""} for {today.strftime("%A, %d %b")} ({nus_week})</b>'
 
     # today
-    reminder += f'\n\n<b>:rotating_light:  Today  :rotating_light:</b>'
+    reminder += f'\n\n<b>:rotating_light:  TODAY  :rotating_light:</b>'
     if len(today_events) == 0:
         reminder += f'\n\n<i>:grin:  There are no deadlines today</i>'
     else:
         reminder += today_events.apply(generate_msg, axis=1).str.cat()
 
     # next lead_time days
-    reminder += f'\n\n<b>:{num2words(config.lead_time - 1)}:  Next {config.lead_time - 1} Days  :{num2words(config.lead_time - 1)}:</b>'
+    reminder += f'\n\n<b>:{num2words(config.lead_time - 1)}:  NEXT {config.lead_time - 1} DAYS  :{num2words(config.lead_time - 1)}:</b>'
     if len(future_events) == 0:
         reminder += f'\n\n<i>:grin:  There are no upcoming deadlines in the following {config.lead_time-1} days</i>'
     else:
