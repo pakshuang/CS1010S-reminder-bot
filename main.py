@@ -56,9 +56,9 @@ def generate_msg(row):
 
     # Header
     if pd.notna(row['Link']):
-        msg = f"\n\n<b>{config.emojis.get(row['Type'], '')}  <a href='{row['Link']}'>{row['Title']}</a></b>"
+        msg = f"\n\n{config.emojis.get(row['Type'], '')}  <a href='{row['Link']}'>{row['Title']}</a>"
     else:
-        msg = f"\n\n<b>{config.emojis.get(row['Type'], '')}  {row['Title']}</b>"
+        msg = f"\n\n{config.emojis.get(row['Type'], '')}  {row['Title']}"
 
     # End At
     if pd.notna(row['End At']) and row['Type'] != 'Exam':
@@ -77,7 +77,7 @@ def generate_msg(row):
         msg += f'\n<i>Attempt by <u>{ab}</u> to earn Participation EXP</i>'
 
     # Experience Points
-    if pd.notna(row['Experience Points']):
+    if pd.notna(row['Experience Points']) and row['Experience Points'] > 0:
         msg += f'\nEXP: {int(row["Experience Points"])}'
 
     # forum weekly
@@ -116,21 +116,21 @@ def compile_reminder(today_events, future_events):
     # today
     reminder += f'\n\n<b>:rotating_light:  TODAY  :rotating_light:</b>'
     if len(today_events) == 0:
-        reminder += f'\n\n<i>:grin:  There are no deadlines today</i>'
+        reminder += f'\n\n<i>:relaxed: There are no deadlines today!</i>'
     else:
         reminder += today_events.apply(generate_msg, axis=1).str.cat()
 
     # next lead_time days
     reminder += f'\n\n<b>:{num2words(config.lead_time - 1)}:  NEXT {config.lead_time - 1} DAYS  :{num2words(config.lead_time - 1)}:</b>'
     if len(future_events) == 0:
-        reminder += f'\n\n<i>:grin:  There are no upcoming deadlines in the following {config.lead_time-1} days</i>'
+        reminder += f'\n\n<i>:relaxed: There are no upcoming deadlines in the following {config.lead_time-1} days!</i>'
     else:
         reminder += future_events.apply(generate_msg, axis=1).str.cat()
     return reminder
 
 
 def progression(week_delta):
-    msg = '<b>\n\n:chart_increasing:  Progress Tracker  :chart_increasing:</b>'
+    msg = '<b>\n\n:chart_increasing:  PROGRESS TRACKER  :chart_increasing:</b>'
     #msg += '\n<i>Projected week to reach level 50</i>'
     #msg += '\n<i>Your level this week  :right_arrow:  Level 50 Week</i>'
     for i in range(len(config.target_weeks)):
@@ -191,7 +191,7 @@ def execute(event, context):
         exams = exams[['Title', 'End At']].sort_values(['End At'])
         if len(exams) > 0:
             exams['Countdown'] = (exams['End At'] - today).dt.days
-            msg += f'\n\n<b>:hourglass_not_done:  Upcoming Exams  :hourglass_not_done:</b>'
+            msg += f'\n\n<b>:hourglass_not_done:  UPCOMING EXAMS  :hourglass_not_done:</b>'
             msg += exams.apply(countdown, axis=1).str.cat()
 
         # buttons
@@ -217,5 +217,5 @@ def execute(event, context):
             text=msg, chat_id=config.dev_id)
 
 # for testing locally
-# event = {'test': 'True', 'date': '2021-09-15', 'api_key': config.api_key}
+# event = {'test': 'True', 'date': '2021-09-29', 'api_key': config.api_key}
 # execute(event, None)
