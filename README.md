@@ -1,5 +1,5 @@
 # CS1010S Reminder Bot
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/pakshuang/CS1010S-Reminder-Bot)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/pakshuang/CS1010S-Reminder-Bot) ![AWS CodeBuild](https://codebuild.ap-southeast-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiTDN1NjRCTDQySk8yNnVvUzhkWWszWENmRmkxK0VPcm03QWNEd0lzVkhmRmFIL3k0bFVXdmxid0tEeDJnTmNSdGwwWUdFM2kxQ0ZVT25KOUZYRTN6TVBJPSIsIml2UGFyYW1ldGVyU3BlYyI6Imc1UnEvRklJWFVPbHVPbHEiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main) 
 
 Telegram bot that reminds students about deadlines, exams, and more for the NUS module CS1010S Programming Methodology.
 [Telegram Channel where bot is deployed](https://t.me/CS1010S_reminders)
