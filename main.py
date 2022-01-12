@@ -44,9 +44,12 @@ def get_events(df, lead_time):
     future_cols = ['Attempt By', 'End At', 'Bonus Cut Off']
     today_events = df[df[today_cols].eq(today).any(
         axis=1)]  # .reset_index(drop=True)
+    if not config.FET_tuts:
+        today_events = today_events[(today_events['Type'] != 'FET') & (~today_events['Title'].str.contains('Tutorial'))].reset_index(drop=True)
+    if not config.FET_recs:
+        today_events = today_events[(today_events['Type'] != 'FET') & (~today_events['Title'].str.contains('Recitation'))].reset_index(drop=True)
     future_events = df[df[future_cols].isin(dates).any(axis=1)]
-    future_events = future_events.drop(
-        today_events.index.to_list(), errors='ignore').reset_index(drop=True)
+    future_events = future_events.drop(today_events.index.to_list(), errors='ignore').reset_index(drop=True)
     today_events = today_events.reset_index(drop=True)
     return today_events, future_events
 
@@ -217,5 +220,5 @@ def execute(event, context):
             text=msg, chat_id=config.dev_id)
 
 # for testing locally
-# event = {'test': 'True', 'date': '2022-01-12', 'api_key': config.api_key}
-# execute(event, None)
+event = {'test': 'True', 'date': '2022-01-19', 'api_key': config.api_key}
+execute(event, None)
