@@ -196,9 +196,9 @@ def execute(event, context):
 
         # buttons
         coursemology_button = telegram.InlineKeyboardButton(text=emojize(':rocket:  Coursemology', use_aliases=True),
-                                                            url="https://coursemology.org/courses/2104")
+                                                            url=config.coursemology_link)
         channel_button = telegram.InlineKeyboardButton(text=emojize(':bell:  Join Channel', use_aliases=True),
-                                                    url="https://t.me/CS1010S_reminders")
+                                                    url=config.channel_link)
         buttons = [[coursemology_button, channel_button]]
         keyboard = telegram.InlineKeyboardMarkup(buttons)
 
@@ -217,5 +217,5 @@ def execute(event, context):
             text=msg, chat_id=config.dev_id)
 
 # for testing locally
-# event = {'test': 'True', 'date': '2021-09-29', 'api_key': config.api_key}
+# event = {'test': 'True', 'date': '2022-01-12', 'api_key': config.api_key}
 # execute(event, None)
