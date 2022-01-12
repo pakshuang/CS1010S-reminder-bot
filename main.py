@@ -39,17 +39,26 @@ for col in time_cols:
 ######################
 
 def get_events(df, lead_time):
+    # generate the dates of the next X days
     dates = pd.date_range(today, periods=lead_time, closed='right').date
+
     today_cols = ['Attempt By', 'End At', 'Bonus Cut Off', 'Start At']
     future_cols = ['Attempt By', 'End At', 'Bonus Cut Off']
     today_events = df[df[today_cols].eq(today).any(
-        axis=1)]  # .reset_index(drop=True)
+        axis=1)]
+        
+    # remove tutorial FET reminders
     if not config.FET_tuts:
         today_events = today_events[(today_events['Type'] != 'FET') & (~today_events['Title'].str.contains('Tutorial'))].reset_index(drop=True)
+
+    # remove recitation FET reminders
     if not config.FET_recs:
         today_events = today_events[(today_events['Type'] != 'FET') & (~today_events['Title'].str.contains('Recitation'))].reset_index(drop=True)
+
+    # remove duplicates from tasks with multiple dates
     future_events = df[df[future_cols].isin(dates).any(axis=1)]
     future_events = future_events.drop(today_events.index.to_list(), errors='ignore').reset_index(drop=True)
+
     today_events = today_events.reset_index(drop=True)
     return today_events, future_events
 
@@ -126,7 +135,7 @@ def compile_reminder(today_events, future_events):
     # next lead_time days
     reminder += f'\n\n<b>:{num2words(config.lead_time - 1)}:  NEXT {config.lead_time - 1} DAYS  :{num2words(config.lead_time - 1)}:</b>'
     if len(future_events) == 0:
-        reminder += f'\n\n<i>:relaxed: There are no upcoming deadlines in the following {config.lead_time-1} days!</i>'
+        reminder += f'\n\n<i>:relaxed: There are no upcoming deadlines for the following {config.lead_time-1} days!</i>'
     else:
         reminder += future_events.apply(generate_msg, axis=1).str.cat()
     return reminder
@@ -220,5 +229,5 @@ def execute(event, context):
             text=msg, chat_id=config.dev_id)
 
 # for testing locally
-event = {'test': 'True', 'date': '2022-01-19', 'api_key': config.api_key}
-execute(event, None)
+# event = {'test': 'True', 'date': '2022-01-19', 'api_key': config.api_key}
+# execute(event, None)
