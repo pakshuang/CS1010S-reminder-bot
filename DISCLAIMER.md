@@ -1,0 +1,3 @@
+The CS1010S Reminders Telegram Channel and the CS1010S Reminder Bot are unofficial services that are not affiliated with the NUS CS1010S Teaching Staff. All the information provided on the CS1010S Reminders Telegram Channel and by the CS1010S Reminder Bot is for reference only and may not be accurate, the information is provided on a "best efforts" basis. You agree that you use such information entirely at your own risk and are encouraged to double check details.
+
+In other words, I'm just a guy who took CS1010S before, acting independently to try and help future CS1010S students on their journey through this module. I try my best to provide accurate information, but I am not an official source. Trust these Reminders as if you received them directly from me.
