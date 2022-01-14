@@ -206,6 +206,9 @@ def execute(event, context):
             msg += f'\n\n<b>:hourglass_not_done:  UPCOMING EXAMS  :hourglass_not_done:</b>'
             msg += exams.apply(countdown, axis=1).str.cat()
 
+        # disclaimer
+        msg += f'\n\n<i>{config.disclaimer} <a href="{config.disclaimer_link}">Disclaimer</a></i>'
+
         # buttons
         coursemology_button = telegram.InlineKeyboardButton(text=emojize(':rocket:  Coursemology', use_aliases=True),
                                                             url=config.coursemology_link)
