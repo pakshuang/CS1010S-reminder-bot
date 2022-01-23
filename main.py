@@ -142,6 +142,7 @@ def compile_reminder(today_events, future_events):
 
 def progression(week_delta):
     msg = '<b>\n\n:chart_increasing:  PROGRESS TRACKER  :chart_increasing:</b>'
+    msg += '\n<i>For reference only:</i>'
     #msg += '\n<i>Projected week to reach level 50</i>'
     #msg += '\n<i>Your level this week  :right_arrow:  Level 50 Week</i>'
     for i in range(len(config.target_weeks)):
