@@ -44,16 +44,15 @@ def get_events(df, lead_time):
 
     today_cols = ['Attempt By', 'End At', 'Bonus Cut Off', 'Start At']
     future_cols = ['Attempt By', 'End At', 'Bonus Cut Off']
-    today_events = df[df[today_cols].eq(today).any(
-        axis=1)]
+    today_events = df[df[today_cols].eq(today).any(axis=1)]
         
     # remove tutorial FET reminders
     if not config.FET_tuts:
-        today_events = today_events[(today_events['Type'] != 'FET') & (~today_events['Title'].str.contains('Tutorial'))].reset_index(drop=True)
+        today_events = today_events[~today_events['Title'].str.contains('FET Reminder: Tutorial')]
 
     # remove recitation FET reminders
     if not config.FET_recs:
-        today_events = today_events[(today_events['Type'] != 'FET') & (~today_events['Title'].str.contains('Recitation'))].reset_index(drop=True)
+        today_events = today_events[~today_events['Title'].str.contains('FET Reminder: Recitation')]
 
     # remove duplicates from tasks with multiple dates
     future_events = df[df[future_cols].isin(dates).any(axis=1)]
@@ -232,5 +231,5 @@ def execute(event, context):
             text=msg, chat_id=config.dev_id)
 
 # for testing locally
-# event = {'test': 'True', 'date': '2022-01-19', 'api_key': config.api_key}
+# event = {'test': 'True', 'date': '2022-01-26', 'api_key': config.api_key}
 # execute(event, None)
