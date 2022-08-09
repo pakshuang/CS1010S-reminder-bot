@@ -143,15 +143,13 @@ def compile_reminder(today_events, future_events):
 def progression(week_delta):
     msg = '<b>\n\n:chart_increasing:  PROGRESS TRACKER  :chart_increasing:</b>'
     msg += '\n<i>For reference only:</i>'
-    #msg += '\n<i>Projected week to reach level 50</i>'
-    #msg += '\n<i>Your level this week  :right_arrow:  Level 50 Week</i>'
     for i in range(len(config.target_weeks)):
         if config.target_weeks[i] > week_delta:
             target_level = round(50 * ((week_delta - config.target_intercepts[i] + 1) / (
                 config.target_weeks[i] - config.target_intercepts[i] + 1)))
-            #msg += f'\nLevel {target_level}  :right_arrow:  {week_format[target_week]}'
+            if week_delta == 5:
+                target_level += 3
             msg += f'\nLevel {target_level} this week :right_arrow: Level 50 in {config.week_format[config.target_weeks[i]]}'
-            #msg += f'\nLvl {target_level} this week :right_arrow: Lvl 50 in {week_format[target_week]}'
     return msg
 
 
@@ -210,15 +208,15 @@ def execute(event, context):
         msg += f'\n\n<i>{config.disclaimer} <a href="{config.disclaimer_link}">Disclaimer</a></i>'
 
         # buttons
-        coursemology_button = telegram.InlineKeyboardButton(text=emojize(':rocket:  Coursemology', use_aliases=True),
+        coursemology_button = telegram.InlineKeyboardButton(text=emojize(':rocket:  Coursemology', language='alias'),
                                                             url=config.coursemology_link)
-        channel_button = telegram.InlineKeyboardButton(text=emojize(':bell:  Join Channel', use_aliases=True),
+        channel_button = telegram.InlineKeyboardButton(text=emojize(':bell:  Join Channel', language='alias'),
                                                     url=config.channel_link)
         buttons = [[coursemology_button, channel_button]]
         keyboard = telegram.InlineKeyboardMarkup(buttons)
 
         # broadcast message
-        msg = emojize(msg, use_aliases=True)
+        msg = emojize(msg, language='alias')
         print(msg)
         bot.send_message(chat_id=chat_id,
                         text=msg,
@@ -232,5 +230,5 @@ def execute(event, context):
             text=msg, chat_id=config.dev_id)
 
 # for testing locally
-# event = {'test': 'True', 'date': '2022-01-26', 'api_key': config.api_key}
+# event = {'test': 'True', 'date': '2022-09-13', 'api_key': config.api_key}
 # execute(event, None)
