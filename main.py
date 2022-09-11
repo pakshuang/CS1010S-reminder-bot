@@ -149,6 +149,10 @@ def progression(week_delta):
                 config.target_weeks[i] - config.target_intercepts[i] + 1)))
             if week_delta == 5:
                 target_level += 3
+            elif week_delta == 7:
+                target_level -= 2
+            elif week_delta == 11:
+                target_level += 2
             msg += f'\nLevel {target_level} this week :right_arrow: Level 50 in {config.week_format[config.target_weeks[i]]}'
     return msg
 
