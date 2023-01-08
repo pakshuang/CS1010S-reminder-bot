@@ -77,7 +77,7 @@ def generate_msg(row):
     # attempt tutorial
     if pd.notna(row['Attempt By']) and row['Attempt By'] >= today and row['Type'] == 'Tutorial':
         ab = row['Attempt By'].strftime(date_format)
-        msg += f'\n<i>Attempt by <u>{ab}</u> to earn EXP</i>'
+        msg += f'\n<i>Attempt by <u>{ab}</u> to earn Participation EXP</i>'
 
     # Experience Points
     if pd.notna(row['Experience Points']) and row['Experience Points'] > 0:
@@ -86,7 +86,7 @@ def generate_msg(row):
     # forum weekly
     if pd.notna(row['Attempt By']) and row['Type'] == 'Forum':
         ab = row['Attempt By'].strftime(date_format)
-        msg += f'\n<i>Contribute to the forums by <u>{ab}</u> 10:00 to earn EXP for {config.week_format[week_delta-1]}</i>'
+        msg += f'\n<i>Contribute to the forums by <u>{ab}</u> 10:00 to earn Participation EXP for {config.week_format[week_delta-1]}</i>'
 
     # Bonus Cut Off
     if pd.notna(row['Bonus Cut Off']):
@@ -99,7 +99,7 @@ def generate_msg(row):
 
     # Reflections
     if row['Type'] == 'Reflections':
-        msg += f"\n<i>There's a lecture today!\nAfter the lecture, share your reflections on the forum thread to earn EXP</i>"
+        msg += f"\n<i>There's a lecture today!\nAfter the lecture, share your reflections on the forum thread to earn Participation EXP</i>"
 
     return msg
 
