@@ -120,14 +120,16 @@ def correct_deadline_date(timestamp):
 for col in time_cols:
     deadlines[col] = deadlines[col].apply(correct_deadline_date)
 
+deadlines[~deadlines['url'].isnull()]['url'] = scraping_config.coursemology_link + deadlines[~deadlines['url'].isnull()]['url'].astype(str)
+
 
 ###########
 #  Exams  #
 ###########
 
 exams = pd.DataFrame.from_dict(scraping_config.exam_dates)
-exams['Type'] = 'Exam'
-#print(exams)
+exams['type'] = 'Exam'
+
 
 ########################
 #  Lecture Reflection  #
@@ -143,12 +145,12 @@ reflection_dates = []
 lectures = pd.date_range(start=first_monday,
                          periods=scraping_config.lecture_count + len(scraping_config.no_lecture_weeks),
                          freq=scraping_config.lecture_day)
-lectures = lectures.to_frame(index=False, name='Start At').drop(
+lectures = lectures.to_frame(index=False, name='startAt').drop(
     scraping_config.no_lecture_weeks).reset_index(drop=True)
-lectures['Title'] = reflection_titles
-lectures['Type'] = 'Reflections'
-lectures['Link'] = scraping_config.reflections_link
-#print(lectures)
+lectures['title'] = reflection_titles
+lectures['type'] = 'Reflections'
+lectures['url'] = scraping_config.reflections_link
+
 
 ###########
 #  Forum  #
@@ -161,32 +163,31 @@ week_format = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6',
 forum_titles = []
 for i in range(len(week_format)):
     forum_titles.append(f'Forum Participation: {week_format[i]}')
-#print(forum_titles)
 
 # generate forum dates
 forum_dates = []
 forums = pd.date_range(start=first_monday, periods=15,
                        freq=scraping_config.lecture_day)
-forums = forums.to_frame(index=False, name='Attempt By').drop(
+forums = forums.to_frame(index=False, name='attemptBy').drop(
     [0]).reset_index(drop=True)
-forums['Title'] = forum_titles
-forums['Type'] = 'Forum'
-forums['Link'] = scraping_config.forum_link
-# print(forums)
+forums['title'] = forum_titles
+forums['type'] = 'Forum'
+forums['url'] = scraping_config.forum_link
+
 
 #########
 #  CSV  #
 #########
 
 deadlines = pd.concat([exams, lectures, deadlines, forums], ignore_index=True)
-cols = ['Title', 'Type', 'Attempt By', 'End At', 'Experience Points',
-        'Bonus Cut Off', 'Bonus Experience Points', 'Start At', 'Link']
+cols = ['title', 'type', 'attemptBy', 'endAt.referenceTime', 'baseExp',
+        'bonusEndAt.referenceTime', 'timeBonusExp', 'startAt', 'url']
 deadlines = deadlines[cols]
 sorter = ['Exam', 'Reflections', 'Mission', 'Side Quest', 'Contest',
           'Lecture Training', 'Tutorial', 'Exam Practice', 'Forum', 'Debugging']
-deadlines['Type'] = deadlines['Type'].astype('category')
-deadlines['Type'].cat.set_categories(sorter, inplace=True)
-deadlines = deadlines.sort_values(['Type', 'Title']).reset_index(drop=True)
+deadlines['type'] = deadlines['type'].astype('category')
+deadlines['type'].cat = deadlines['type'].cat.set_categories(sorter)
+deadlines = deadlines.sort_values(['type', 'title']).reset_index(drop=True)
 print(deadlines)
 
 if not scraping_config.test_mode:
