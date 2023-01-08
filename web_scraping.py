@@ -214,7 +214,7 @@ forums['Link'] = scraping_config.forum_link
 #  CSV  #
 #########
 
-deadlines = pd.concat([exams, lectures, deadlines, forums, fet], ignore_index=True)
+deadlines = pd.concat([exams, lectures, deadlines, forums], ignore_index=True)
 cols = ['Title', 'Type', 'Attempt By', 'End At', 'Experience Points',
         'Bonus Cut Off', 'Bonus Experience Points', 'Start At', 'Link']
 deadlines = deadlines[cols]
