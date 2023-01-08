@@ -1,6 +1,7 @@
 from os.path import abspath, realpath, dirname, join
 import sys
 import datetime
+import json
 
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -8,6 +9,7 @@ from bs4 import BeautifulSoup
 private_path = realpath(abspath(join(dirname(__file__), '..', 'private')))
 sys.path.insert(1, private_path)
 import scraping_config
+
 
 ###########
 #  Login  #
@@ -26,6 +28,27 @@ result = session_requests.post(
     scraping_config.login_url,
     data = scraping_config.payload,
 )
+
+
+##########
+#  Load  #
+##########
+
+missions_json = session_requests.get(scraping_config.missions_link).text
+missions_dict = json.loads(missions_json)["assessments"]
+missions_dict_normalized = pd.json_normalize(missions_dict)
+missions = pd.DataFrame.from_dict(missions_dict_normalized)
+
+trainings_json = session_requests.get(scraping_config.trainings_link).text
+trainings_dict = json.loads(trainings_json)["assessments"]
+trainings_dict_normalized = pd.json_normalize(trainings_dict)
+trainings = pd.DataFrame.from_dict(trainings_dict_normalized)
+
+tutorials_json = session_requests.get(scraping_config.tutorials_link).text
+tutorials_dict = json.loads(tutorials_json)["assessments"]
+tutorials_dict_normalized = pd.json_normalize(tutorials_dict)
+tutorials = pd.DataFrame.from_dict(tutorials_dict_normalized)
+
 
 ##############
 #  Missions  #
