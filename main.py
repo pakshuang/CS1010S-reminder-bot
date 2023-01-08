@@ -45,14 +45,6 @@ def get_events(df, lead_time):
     today_cols = ['Attempt By', 'End At', 'Bonus Cut Off', 'Start At']
     future_cols = ['Attempt By', 'End At', 'Bonus Cut Off']
     today_events = df[df[today_cols].eq(today).any(axis=1)]
-        
-    # remove tutorial FET reminders
-    if not config.FET_tuts:
-        today_events = today_events[~today_events['Title'].str.contains('FET Reminder: Tutorial')]
-
-    # remove recitation FET reminders
-    if not config.FET_recs:
-        today_events = today_events[~today_events['Title'].str.contains('FET Reminder: Recitation')]
 
     # remove duplicates from tasks with multiple dates
     future_events = df[df[future_cols].isin(dates).any(axis=1)]
@@ -108,14 +100,6 @@ def generate_msg(row):
     # Reflections
     if row['Type'] == 'Reflections':
         msg += f"\n<i>There's a lecture today!\nAfter the lecture, share your reflections on the forum thread to earn EXP</i>"
-
-    # FET tuts
-    if "Tutorial" in row['Title'] and row['Type'] == 'FET' and config.FET_tuts:
-        msg += '\n<i>Remember to take your FET before going to school</i>'
-
-    # FET recs
-    if "Recitation" in row['Title'] and row['Type'] == 'FET' and config.FET_recs:
-        msg += '\n<i>Remember to take your FET before going to school</i>'
 
     return msg
 

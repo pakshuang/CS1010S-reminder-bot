@@ -211,35 +211,6 @@ forums['Link'] = scraping_config.forum_link
 # print(forums)
 
 #########
-#  FET  #
-#########
-
-# generate titles for FET
-fet_titles = []
-
-for i in range(1, len(tutorials) + 1):
-    fet_titles.append(f'FET Reminder: Tutorial {i}')
-
-for i in range(1,scraping_config.rec_count + 1):
-    fet_titles.append(f'FET Reminder: Recitation {i}')
-#print(fet_titles)
-
-fet = tut_attempts.rename(columns={'Attempt By': 'Start At'})
-
-recs = pd.date_range(start=first_monday,
-                             periods=scraping_config.rec_count + len(scraping_config.no_recs),
-                             freq=scraping_config.rec_fet_day)
-recs = recs.to_frame(index=False, name='Start At').drop(scraping_config.no_recs).reset_index(drop=True)
-#print(recs)
-
-fet = pd.concat([fet,recs], ignore_index=True, )
-#print(fet)
-
-fet['Title'] = fet_titles
-fet['Type'] = 'FET'
-#print(fet)
-
-#########
 #  CSV  #
 #########
 
@@ -247,7 +218,7 @@ deadlines = pd.concat([exams, lectures, deadlines, forums, fet], ignore_index=Tr
 cols = ['Title', 'Type', 'Attempt By', 'End At', 'Experience Points',
         'Bonus Cut Off', 'Bonus Experience Points', 'Start At', 'Link']
 deadlines = deadlines[cols]
-sorter = ['Exam', 'FET', 'Reflections', 'Mission', 'Side Quest', 'Contest',
+sorter = ['Exam', 'Reflections', 'Mission', 'Side Quest', 'Contest',
           'Lecture Training', 'Tutorial', 'Exam Practice', 'Forum', 'Debugging']
 deadlines['Type'] = deadlines['Type'].astype('category')
 deadlines['Type'].cat.set_categories(sorter, inplace=True)
