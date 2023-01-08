@@ -119,8 +119,9 @@ def correct_deadline_date(timestamp):
 
 for col in time_cols:
     deadlines[col] = deadlines[col].apply(correct_deadline_date)
+    deadlines[col] = deadlines[col].apply(lambda ts: ts.date().isoformat())
 
-deadlines[~deadlines['url'].isnull()]['url'] = scraping_config.coursemology_link + deadlines[~deadlines['url'].isnull()]['url'].astype(str)
+deadlines['url'] = scraping_config.coursemology_link + deadlines['url'].astype(str)
 
 
 ###########
@@ -186,7 +187,7 @@ deadlines = deadlines[cols]
 sorter = ['Exam', 'Reflections', 'Mission', 'Side Quest', 'Contest',
           'Lecture Training', 'Tutorial', 'Exam Practice', 'Forum', 'Debugging']
 deadlines['type'] = deadlines['type'].astype('category')
-deadlines['type'].cat = deadlines['type'].cat.set_categories(sorter)
+deadlines['type'] = deadlines['type'].cat.set_categories(sorter, ordered=True)
 deadlines = deadlines.sort_values(['type', 'title']).reset_index(drop=True)
 print(deadlines)
 
