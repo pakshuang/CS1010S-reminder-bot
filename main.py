@@ -83,7 +83,7 @@ def generate_msg(row):
     if pd.notna(row['Experience Points']) and row['Experience Points'] > 0:
         msg += f'\nEXP: {int(row["Experience Points"])}'
 
-    # forum weekly
+    # Forum weekly
     if pd.notna(row['Attempt By']) and row['Type'] == 'Forum':
         ab = row['Attempt By'].strftime(date_format)
         msg += f'\n<i>Contribute to the forums by <u>{ab}</u> 10:00 to earn Participation EXP for {config.week_format[week_delta-1]}</i>'
