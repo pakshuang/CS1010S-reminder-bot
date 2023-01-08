@@ -9,6 +9,24 @@ private_path = realpath(abspath(join(dirname(__file__), '..', 'private')))
 sys.path.insert(1, private_path)
 import scraping_config
 
+###########
+#  Login  #
+###########
+
+import requests
+from lxml import html
+
+session_requests = requests.session()
+result = session_requests.get(scraping_config.login_url)
+
+tree = html.fromstring(result.text)
+authenticity_token = list(set(tree.xpath("//input[@name='csrf-token']/@value")))
+
+result = session_requests.post(
+    scraping_config.login_url,
+    data = scraping_config.payload,
+)
+
 ##############
 #  Missions  #
 ##############
