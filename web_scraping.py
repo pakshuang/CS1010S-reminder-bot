@@ -38,50 +38,26 @@ missions_json = session_requests.get(scraping_config.missions_link).text
 missions_dict = json.loads(missions_json)["assessments"]
 missions_dict_normalized = pd.json_normalize(missions_dict)
 missions = pd.DataFrame.from_dict(missions_dict_normalized)
+missions.drop(missions[missions["published"] == False].index, inplace=True)
 
 trainings_json = session_requests.get(scraping_config.trainings_link).text
 trainings_dict = json.loads(trainings_json)["assessments"]
 trainings_dict_normalized = pd.json_normalize(trainings_dict)
 trainings = pd.DataFrame.from_dict(trainings_dict_normalized)
+trainings.drop(trainings[trainings["published"] == False].index, inplace=True)
 
 tutorials_json = session_requests.get(scraping_config.tutorials_link).text
 tutorials_dict = json.loads(tutorials_json)["assessments"]
 tutorials_dict_normalized = pd.json_normalize(tutorials_dict)
 tutorials = pd.DataFrame.from_dict(tutorials_dict_normalized)
+tutorials.drop(tutorials[tutorials["published"] == False].index, inplace=True)
 
 
 ##############
 #  Missions  #
 ##############
 
-# parsing HTML file
-missions_path = abspath(join(private_path, 'Missions.html'))
-with open(missions_path, 'r') as missions_file:
-    missions_html = missions_file.read()
-    missions = pd.read_html(missions_html,
-                            na_values=['-'],
-                            converters={'Experience Points': int,
-                                        'Bonus Experience Points': int})[0]
-    missions_soup = BeautifulSoup(missions_html, 'html.parser')
-
-# parsing links
-missions_table = missions_soup.find('table')
-missions_links = []
-for tr in missions_table.find_all("tr"):
-    th = tr.find("th")
-    try:
-        link = th.find('a')['href']
-        missions_links.append(link)
-    except:
-        pass
-missions['Link'] = missions_links
-#print(missions.columns)
-
-# sorting out the df
-missions = missions[['Title', 'Experience Points', 'Bonus Experience Points',
-                     'Bonus Cut Off', 'End At', 'Link']]
-
-missions = missions[missions['Title'].str.contains(
+missions = missions[missions['title'].str.contains(
     r'Mission|Side Quest|Contest', na=False)]
 
 def mission_cat(title):
@@ -92,86 +68,11 @@ def mission_cat(title):
     if 'Contest' in title:
         return 'Contest'
 
-missions['Type'] = missions['Title'].apply(mission_cat)
-# print(missions)
-
-###############
-#  Tutorials  #
-###############
-
-# parsing HTML file
-tutorials_path = abspath(join(private_path, 'Tutorial.html'))
-with open(tutorials_path, 'r') as tutorials_file:
-    tutorials_html = tutorials_file.read()
-    tutorials = pd.read_html(tutorials_html,
-                             na_values=['-'],
-                             converters={
-                                 'Experience Points': int,
-                                 'Bonus Experience Points': int
-                             })[0]
-    tutorials_soup = BeautifulSoup(tutorials_html, 'html.parser')
-
-# parsing links
-tutorials_table = tutorials_soup.find('table')
-tutorials_links = []
-for tr in tutorials_table.find_all("tr"):
-    th = tr.find("th")
-    try:
-        link = th.find('a')['href']
-        tutorials_links.append(link)
-    except:
-        pass
-tutorials['Link'] = tutorials_links
-#print(tutorials.columns)
-
-# sorting out the df
-tutorials = tutorials[['Title', 'Experience Points', 'Bonus Experience Points',
-                       'Bonus Cut Off', 'Link']]
-
-tutorials['Type'] = 'Tutorial'
-
-# tutorial attempt cutoff for participation EXP
-first_monday = datetime.date(*scraping_config.week_1)
-tut_attempts = pd.date_range(start=first_monday,
-                             periods=len(tutorials) + len(scraping_config.no_tuts),
-                             freq=scraping_config.tut_cutoff_day)
-tut_attempts = tut_attempts.to_frame(index=False, name='Attempt By').drop(scraping_config.no_tuts).reset_index(drop=True)
-#print(tut_attempts)
-tutorials = pd.concat([tutorials, tut_attempts], axis=1)
-#print(tutorials)
+missions['type'] = missions['title'].apply(mission_cat)
 
 ###############
 #  Trainings  #
 ###############
-
-# parsing HTML file
-trainings_path = abspath(join(private_path, 'Trainings.html'))
-with open(trainings_path, 'r') as trainings_file:
-    trainings_html = trainings_file.read()
-    trainings = pd.read_html(trainings_html,
-                             na_values=['-'],
-                             converters={
-                                 'Experience Points': int,
-                                 'Bonus Experience Points': int
-                             })[0]
-    trainings_soup = BeautifulSoup(trainings_html, 'html.parser')
-
-# parsing links
-trainings_table = trainings_soup.find('table')
-trainings_links = []
-for tr in trainings_table.find_all("tr"):
-    th = tr.find("th")
-    try:
-        link = th.find('a')['href']
-        trainings_links.append(link)
-    except:
-        pass
-trainings['Link'] = trainings_links
-#print(trainings.info())
-
-# sorting out the df
-trainings = trainings[['Title', 'Experience Points', 'Bonus Experience Points',
-                       'Bonus Cut Off', 'Link']]
 
 def training_cat(title):
     if 'Lecture' in title:
@@ -181,22 +82,44 @@ def training_cat(title):
     if 'Midterm' in title or 'Final' in title:
         return 'Exam Practice'
 
-trainings['Type'] = trainings['Title'].apply(training_cat)
-# print(trainings)
+trainings['type'] = trainings['title'].apply(training_cat)
+
+
+###############
+#  Tutorials  #
+###############
+
+tutorials['type'] = 'Tutorial'
+
+# calculate tutorial attempt cutoff for participation EXP
+first_monday = datetime.date(*scraping_config.week_1)
+tut_attempts = pd.date_range(start=first_monday,
+                             periods=len(tutorials) + len(scraping_config.no_tuts),
+                             freq=scraping_config.tut_cutoff_day)
+tut_attempts = tut_attempts.to_frame(index=False, name='attemptBy').drop(scraping_config.no_tuts).reset_index(drop=True)
+tutorials = pd.concat([tutorials, tut_attempts], axis=1)
+
 
 #########################################
-#  Join Missions, Tutorials, Trainings  #
+#  Join Missions, Trainings, Tutorials  #
 #########################################
 
-deadlines = pd.concat([missions, tutorials, trainings], ignore_index=True)
-time_cols = ['Bonus Cut Off', 'End At']
-deadlines[time_cols] = deadlines[time_cols].apply(pd.to_datetime,
-                                                                                      format='%d %b %H:%M',
-                                                                                      errors='ignore')
+deadlines = pd.concat([missions, trainings, tutorials], ignore_index=True)
+
+# Correct deadlines with times early in the day
+# E.g., A 2023-02-28 00:00:00 deadline has an effective deadline of 2023-02-27
+time_cols = ['bonusEndAt.referenceTime', 'endAt.referenceTime']
+deadlines[time_cols] = deadlines[time_cols].apply(pd.to_datetime, errors='ignore')
+
+def correct_deadline_date(timestamp):
+    if timestamp.hour >= 9:
+        return timestamp
+    else:
+        return timestamp - pd.Timedelta(days=1)
+
 for col in time_cols:
-    deadlines[col] = deadlines[col].apply(lambda ts: ts.replace(year=scraping_config.year))
-    deadlines[col] = deadlines[col].apply(lambda ts: ts.date())
-#print(deadlines)
+    deadlines[col] = deadlines[col].apply(correct_deadline_date)
+
 
 ###########
 #  Exams  #
