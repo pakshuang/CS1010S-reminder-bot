@@ -189,6 +189,7 @@ sorter = ['Exam', 'Reflections', 'Mission', 'Side Quest', 'Contest',
 deadlines['type'] = deadlines['type'].astype('category')
 deadlines['type'] = deadlines['type'].cat.set_categories(sorter, ordered=True)
 deadlines = deadlines.sort_values(['type', 'title']).reset_index(drop=True)
+deadlines.columns = ['Title', 'Type', 'Attempt By', 'End At', 'Experience Points', 'Bonus Cut Off', 'Bonus Experience Points', 'Start At', 'Link']
 print(deadlines)
 
 if not scraping_config.test_mode:

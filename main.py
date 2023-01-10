@@ -9,17 +9,21 @@ import telegram
 from emoji import emojize
 from num2words import num2words
 
+
 #################
 #  Load config  #
 #################
+
 
 private_path = realpath(abspath(join(dirname(__file__), '..', 'private')))
 sys.path.insert(1, private_path)
 import config
 
+
 ###############
 #  Load data  #
 ###############
+
 
 deadlines_path = abspath(join(private_path, 'deadlines.csv'))
 deadlines = pd.read_csv(deadlines_path,
@@ -34,9 +38,11 @@ for col in time_cols:
     deadlines[col] = deadlines[col].apply(lambda ts: ts.date())
 # print(deadlines.info())
 
+
 ######################
 #  Define functions  #
 ######################
+
 
 def get_events(df, lead_time):
     # generate the dates of the next X days
@@ -48,7 +54,8 @@ def get_events(df, lead_time):
 
     # remove duplicates from tasks with multiple dates
     future_events = df[df[future_cols].isin(dates).any(axis=1)]
-    future_events = future_events.drop(today_events.index.to_list(), errors='ignore').reset_index(drop=True)
+    future_events = future_events.drop(
+        today_events.index.to_list(), errors='ignore').reset_index(drop=True)
 
     today_events = today_events.reset_index(drop=True)
     return today_events, future_events
@@ -144,9 +151,11 @@ def progression(week_delta):
 def countdown(row):
     return f'\n{row["Title"]}: {row["End At"].strftime("%A, %d %b")} ({row["Countdown"]} day{"s" if row["Countdown"] > 1 else ""})'
 
+
 ####################
 #  Telegram stuff  #
 ####################
+
 
 def execute(event, context):
     global today, week_delta, nus_week
@@ -164,10 +173,10 @@ def execute(event, context):
     # define week data
     sem_start_date = datetime.date(*config.week_1)
     week_delta = max(-1, min(17,
-                            today.isocalendar()[1] - sem_start_date.isocalendar()[1]))
+                             today.isocalendar()[1] - sem_start_date.isocalendar()[1]))
     # ^this is just error trapping, week_delta should never go beyond it's boundaries if deployed at the correct time
     nus_week = config.week_format[week_delta]
-    
+
     # initialise bot
     bot = telegram.Bot(event['api_key'])
 
@@ -185,7 +194,7 @@ def execute(event, context):
 
         # exam countdown
         exams = deadlines[(deadlines['Type'] == 'Exam') & ((deadlines['End At'] - today).dt.days <=
-                                                        config.countdown_threshold) & (1 <= (deadlines['End At'] - today).dt.days)]
+                                                           config.countdown_threshold) & (1 <= (deadlines['End At'] - today).dt.days)]
         exams = exams[['Title', 'End At']].sort_values(['End At'])
         if len(exams) > 0:
             exams['Countdown'] = (exams['End At'] - today).dt.days
@@ -199,7 +208,7 @@ def execute(event, context):
         coursemology_button = telegram.InlineKeyboardButton(text=emojize(':rocket:  Coursemology', language='alias'),
                                                             url=config.coursemology_link)
         channel_button = telegram.InlineKeyboardButton(text=emojize(':bell:  Join Channel', language='alias'),
-                                                    url=config.channel_link)
+                                                       url=config.channel_link)
         buttons = [[coursemology_button, channel_button]]
         keyboard = telegram.InlineKeyboardMarkup(buttons)
 
@@ -207,16 +216,17 @@ def execute(event, context):
         msg = emojize(msg, language='alias')
         print(msg)
         bot.send_message(chat_id=chat_id,
-                        text=msg,
-                        parse_mode='html',
-                        disable_web_page_preview=True,
-                        reply_markup=keyboard)
+                         text=msg,
+                         parse_mode='html',
+                         disable_web_page_preview=True,
+                         reply_markup=keyboard)
     else:
         msg = f'No reminders today ({today})'
         print(msg)
         bot.send_message(
             text=msg, chat_id=config.dev_id)
 
+
 # for testing locally
-# event = {'test': 'True', 'date': '2022-09-13', 'api_key': config.api_key}
+# event = {'test': 'True', 'date': '2023-03-09', 'api_key': config.api_key}
 # execute(event, None)
