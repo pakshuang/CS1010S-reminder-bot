@@ -66,47 +66,60 @@ def generate_msg(row):
 
     # Header
     if pd.notna(row['Link']):
-        msg = f"\n\n{config.emojis.get(row['Type'], '')}  <a href='{row['Link']}'>{row['Title']}</a>"
+        msg = "\n\n"
+        msg += f"{config.emojis.get(row['Type'], '')}  <a href='{row['Link']}'>{row['Title']}</a>"
     else:
-        msg = f"\n\n{config.emojis.get(row['Type'], '')}  {row['Title']}"
+        msg = "\n\n"
+        msg += f"{config.emojis.get(row['Type'], '')}  {row['Title']}"
 
     # End At
     if pd.notna(row['End At']) and row['Type'] != 'Exam':
         dl = row['End At'].strftime(date_format)
-        msg += f'\nDeadline: <u>{dl}</u>'
+        msg += "\n"
+        msg += f"Deadline: <u>{dl}</u>"
 
     # Exam
     elif pd.notna(row['End At']) and row['Type'] == 'Exam':
         dl = row['End At'].strftime(date_format)
-        msg += f'\nExam date: <u>{dl}</u>'
-        msg += '\nAll the best!'
+        msg += "\n"
+        msg += f"Exam date: <u>{dl}</u>"
+        msg += "\n"
+        msg += "All the best!"
 
     # attempt tutorial
     if pd.notna(row['Attempt By']) and row['Attempt By'] >= today and row['Type'] == 'Tutorial':
         ab = row['Attempt By'].strftime(date_format)
-        msg += f'\n<i>Attempt by <u>{ab}</u> to earn Participation EXP</i>'
+        msg += "\n"
+        msg += f"<i>Attempt by <u>{ab}</u> to earn Participation EXP</i>"
 
     # Experience Points
     if pd.notna(row['Experience Points']) and row['Experience Points'] > 0:
-        msg += f'\nEXP: {int(row["Experience Points"])}'
+        msg += "\n"
+        msg += f"EXP: {int(row['Experience Points'])}"
 
     # Forum weekly
     if pd.notna(row['Attempt By']) and row['Type'] == 'Forum':
         ab = row['Attempt By'].strftime(date_format)
-        msg += f'\n<i>Contribute to the forums by <u>{ab}</u> 10:00 to earn Participation EXP for {config.week_format[week_delta-1]}</i>'
+        msg += "\n"
+        msg += f"<i>Contribute to the forums by <u>{ab}</u> 10:00 to earn Participation EXP for {config.week_format[week_delta-1]}</i>"
 
     # Bonus Cut Off
     if pd.notna(row['Bonus Cut Off']):
         bco = row['Bonus Cut Off'].strftime(date_format)
-        msg += f'\nBonus Cutoff: <u>{bco}</u>'
+        msg += "\n"
+        msg += f"Bonus Cutoff: <u>{bco}</u>"
 
     # Bonus Experience Points
     if pd.notna(row['Bonus Experience Points']):
-        msg += f'\nBonus EXP: {int(row["Bonus Experience Points"])}'
+        msg += "\n"
+        msg += f"Bonus EXP: {int(row['Bonus Experience Points'])}"
 
     # Reflections
     if row['Type'] == 'Reflections':
-        msg += f"\n<i>There's a lecture today!\nAfter the lecture, share your reflections on the forum thread to earn Participation EXP</i>"
+        msg += "\n"
+        msg += "<i>There's a lecture today!"
+        msg += "\n"
+        msg += "After the lecture, share your reflections on the forum thread to earn Participation EXP</i>"
 
     return msg
 
@@ -116,24 +129,34 @@ def compile_reminder(today_events, future_events):
     reminder = f'<b>Reminder{"s" if len(future_events)+len(today_events) > 1 else ""} for {today.strftime("%A, %d %b")} ({nus_week})</b>'
 
     # today
-    reminder += f'\n\n<b>:rotating_light:  TODAY  :rotating_light:</b>'
+    reminder += "\n\n"
+    reminder += "<b>:rotating_light:  TODAY  :rotating_light:</b>"
+
     if len(today_events) == 0:
-        reminder += f'\n\n<i>:relaxed: There are no deadlines today!</i>'
+        reminder += "\n\n"
+        reminder += "<i>:relaxed: There are no deadlines today!</i>"
     else:
         reminder += today_events.apply(generate_msg, axis=1).str.cat()
 
     # next lead_time days
-    reminder += f'\n\n<b>:{num2words(config.lead_time - 1)}:  NEXT {config.lead_time - 1} DAYS  :{num2words(config.lead_time - 1)}:</b>'
+    reminder += "\n\n"
+    reminder += f"<b>:{num2words(config.lead_time - 1)}:  NEXT {config.lead_time - 1} DAYS  :{num2words(config.lead_time - 1)}:</b>"
+
     if len(future_events) == 0:
-        reminder += f'\n\n<i>:relaxed: There are no upcoming deadlines for the following {config.lead_time-1} days!</i>'
+        reminder += "\n\n"
+        reminder += f"<i>:relaxed: There are no upcoming deadlines for the following {config.lead_time-1} days!</i>"
     else:
         reminder += future_events.apply(generate_msg, axis=1).str.cat()
+    
     return reminder
 
 
 def progression(week_delta):
-    msg = '<b>\n\n:chart_increasing:  PROGRESS TRACKER  :chart_increasing:</b>'
-    msg += '\n<i>For reference only:</i>'
+    msg = "\n\n"
+    msg += "<b>:chart_increasing:  PROGRESS TRACKER  :chart_increasing:</b>"
+    msg += "\n"
+    msg += "<i>For reference only:</i>"
+
     for i in range(len(config.target_weeks)):
         if config.target_weeks[i] > week_delta:
             target_level = round(50 * ((week_delta - config.target_intercepts[i] + 1) / (
@@ -145,6 +168,7 @@ def progression(week_delta):
             elif week_delta == 11:
                 target_level += 2
             msg += f'\nLevel {target_level} this week :right_arrow: Level 50 in {config.week_format[config.target_weeks[i]]}'
+    
     return msg
 
 
