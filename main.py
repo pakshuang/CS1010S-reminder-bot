@@ -157,17 +157,10 @@ def progression(week_delta):
     msg += "\n"
     msg += "<i>For reference only:</i>"
 
-    for i in range(len(config.target_weeks)):
-        if config.target_weeks[i] > week_delta:
-            target_level = round(50 * ((week_delta - config.target_intercepts[i] + 1) / (
-                config.target_weeks[i] - config.target_intercepts[i] + 1)))
-            if week_delta == 5:
-                target_level += 3
-            elif week_delta == 7:
-                target_level -= 2
-            elif week_delta == 11:
-                target_level += 2
-            msg += f'\nLevel {target_level} this week :right_arrow: Level 50 in {config.week_format[config.target_weeks[i]]}'
+    for target_week in config.target_weeks:
+        if target_week > week_delta:
+            target_level = config.targets[target_week][week_delta]
+            msg += f'\nLevel {target_level} this week :right_arrow: Level 50 in {config.week_format[target_week]}'
     
     return msg
 
