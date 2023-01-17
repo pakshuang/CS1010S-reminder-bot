@@ -101,7 +101,7 @@ def generate_msg(row):
     if pd.notna(row['Attempt By']) and row['Type'] == 'Forum':
         ab = row['Attempt By'].strftime(date_format)
         msg += "\n"
-        msg += f"<i>Contribute to the forums by <u>{ab} {config.lecture_start_time}</u> to earn Participation EXP for {config.week_format[week_delta-1]}</i>"
+        msg += f"<i>Contribute to the forums by <u>{config.lecture_start_time} on {ab}</u> to earn Participation EXP for {config.week_format[week_delta-1]}</i>"
 
     # Bonus Cut Off
     if pd.notna(row['Bonus Cut Off']):
